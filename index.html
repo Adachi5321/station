@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大阪環状線 駅接近通知シミュレーション</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    select, .start-button {
+      margin-top: 1rem;
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .start-button {
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .start-button:hover {
+      background-color: #005fa3;
+    }
+    #message {
+      margin-top: 2rem;
+      font-size: 1.3rem;
+      color: #0077cc;
+    }
+  </style>
+</head>
+<body>
+  <h1>大阪環状線 駅接近通知体験</h1>
+  <p>降りたい駅を選んで体験スタート！</p>
+
+  <label for="station">降車駅を選んでください：</label>
+  <br>
+  <select id="station">
+    <option value="天王寺">天王寺</option>
+    <option value="大阪">大阪</option>
+    <option value="京橋">京橋</option>
+    <option value="西九条">西九条</option>
+    <option value="弁天町">弁天町</option>
+  </select>
+
+  <br>
+  <button class="start-button" onclick="startSimulation()">体験スタート</button>
+  <p id="message">まだ通知はありません</p>
+
+  <script>
+    function requestNotificationPermission() {
+      if ("Notification" in window) {
+        Notification.requestPermission().then(function(permission) {
+          if (permission !== "granted") {
+            alert("通知が許可されていないため、ポップアップ通知は表示されません。");
+          }
+        });
+      }
+    }
+
+    function showNotification(text) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(text);
+      }
+    }
+
+    function startSimulation() {
+      requestNotificationPermission();
+      const destination = document.getElementById("station").value;
+      const messages = [
+        { delay: 3000, text: `まもなく ${destination} に到着します` },
+        { delay: 3000, text: `あと1分で ${destination}（振動します）`, vibrate: true },
+        { delay: 3000, text: `${destination} に到着しました！` }
+      ];
+
+      let i = 0;
+      function showNext() {
+        if (i < messages.length) {
+          const m = messages[i];
+          setTimeout(() => {
+            document.getElementById("message").innerText = m.text;
+            if (m.vibrate && navigator.vibrate) {
+              navigator.vibrate([500, 200, 500]);
+            }
+            showNotification(m.text);
+            i++;
+            showNext();
+          }, m.delay);
+        }
+      }
+
+      document.getElementById("message").innerText = "出発しました...";
+      showNext();
+    }
+  </script>
+</body>
+</html>
